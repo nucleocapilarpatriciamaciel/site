@@ -55,7 +55,8 @@
   *{ box-sizing:border-box; }
   html{ scroll-behavior:smooth; }
   @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
-  body{ margin:0; background:var(--cream); color:var(--text); font-family:var(--sans); font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased; }
+  html{ overflow-x:hidden; width:100%; }
+  body{ margin:0; overflow-x:hidden; width:100%; background:var(--cream); color:var(--text); font-family:var(--sans); font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased; }
   img{ max-width:100%; display:block; }
   a{ color:inherit; }
   ::selection{ background:var(--rose); color:var(--cream); }
@@ -165,6 +166,13 @@
     .story-hero{ grid-template-columns:1fr; }
     .th-visual{ justify-self:center; order:-1; }
     .story-frame{ margin:0 auto; }
+    /* trajetória vira lista vertical no mobile — sem scroll horizontal escondido,
+       assim o ponto "Hoje" fica sempre visível e clicável */
+    .th-nodes{ flex-direction:column; overflow-x:visible; gap:1rem; }
+    .th-nodes::before{ display:none; }
+    .th-node{ white-space:normal; padding:.85rem 0 .85rem 1.1rem; margin-right:0; border-left:2px solid var(--beige-line); }
+    .th-node.active{ border-left-color:var(--rose); }
+    .th-node::before{ top:1rem; left:-.31rem; }
   }
 
   .press-wrap{ margin-top:3rem; border-top:1px solid var(--beige-line); padding-top:1.6rem; }
@@ -449,7 +457,7 @@
           </div>
         </div>
 
-        <div>
+        <div id="book-form">
           <p class="eyebrow">Agendar sessão</p>
           <h2 style="font-size:1.8rem; margin-bottom:.8rem;">Reserve seu momento</h2>
           <p style="color:var(--text-mut); font-size:.95rem; margin-bottom:1.5rem;">Preencha os campos — a mensagem já vai pronta para o nosso WhatsApp.</p>
@@ -619,7 +627,7 @@
         '</button>' +
         '<div class="tx-panel"><div class="tx-panel-inner">' +
           '<p>' + t.desc + '</p>' +
-          '<div class="tx-tags">' + t.tags.map(function(tag){ return '<span>'+tag+'</span>'; }).join('') + '<a class="tx-cta" href="#agendar" data-treat="'+t.name+'">Agendar este tratamento →</a></div>' +
+          '<div class="tx-tags">' + t.tags.map(function(tag){ return '<span>'+tag+'</span>'; }).join('') + '<a class="tx-cta" href="#book-form" data-treat="'+t.name+'">Agendar este tratamento →</a></div>' +
           (t.products ? (
             '<div class="tx-products"><span class="tx-products-label">Produtos à venda</span><div class="tx-products-list">' +
             t.products.map(function(prod){
@@ -773,10 +781,16 @@
     var dots = dotsWrap.querySelectorAll('button');
     function goTesti(i){ slides[testiI].classList.remove('active'); dots[testiI].classList.remove('active'); testiI = i; slides[testiI].classList.add('active'); dots[testiI].classList.add('active'); }
     var testiTimer;
-    function startTesti(){ if (reduceMotion || TESTIMONIALS.length < 2) return; testiTimer = setInterval(function(){ goTesti((testiI+1) % TESTIMONIALS.length); }, 5500); }
+    function startTesti(){ if (reduceMotion || TESTIMONIALS.length < 2) return; clearInterval(testiTimer); testiTimer = setInterval(function(){ goTesti((testiI+1) % TESTIMONIALS.length); }, 5000); }
     var testiWrap = document.querySelector('.testi-wrap');
-    testiWrap.addEventListener('mouseenter', function(){ clearInterval(testiTimer); });
-    testiWrap.addEventListener('mouseleave', startTesti);
+    // pausa ao passar o mouse só em dispositivos com hover real (desktop);
+    // em touch, 'mouseenter' fica "preso" após o toque e travava o carrossel no mobile
+    var hasHover = false;
+    try { hasHover = window.matchMedia('(hover: hover)').matches; } catch(e){}
+    if (hasHover){
+      testiWrap.addEventListener('mouseenter', function(){ clearInterval(testiTimer); });
+      testiWrap.addEventListener('mouseleave', startTesti);
+    }
     startTesti();
   } catch(err){ console.error('[nucleo] depoimentos', err); }
 
@@ -877,7 +891,7 @@
       var actions = document.createElement('div'); actions.style.display = 'flex'; actions.style.gap = '.8rem'; actions.style.flexWrap = 'wrap';
       var seeBtn = document.createElement('button'); seeBtn.className = 'btn btn-outline btn-sm'; seeBtn.textContent = 'Ver ' + r.treat;
       seeBtn.addEventListener('click', function(){ if (window.__nucleoOpenTreatment) window.__nucleoOpenTreatment(r.treat); });
-      var bookBtn = document.createElement('a'); bookBtn.className = 'btn btn-solid btn-sm'; bookBtn.href = '#agendar'; bookBtn.textContent = 'Preencher agendamento';
+      var bookBtn = document.createElement('a'); bookBtn.className = 'btn btn-solid btn-sm'; bookBtn.href = '#book-form'; bookBtn.textContent = 'Preencher agendamento';
       bookBtn.addEventListener('click', function(){
         if (fTreat) fTreat.value = r.treat;
         var nameInput = document.getElementById('fName');
