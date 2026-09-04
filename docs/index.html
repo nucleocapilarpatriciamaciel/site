@@ -289,6 +289,8 @@
 
   footer{ padding:3rem 0 2rem; border-top:1px solid var(--beige-line); background:var(--cream-2); }
   .foot-grid{ display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:2.4rem; margin-bottom:2.2rem; }
+  .foot-grid > div{ min-width:0; }
+  @media (max-width:680px){ .foot-grid{ grid-template-columns:1fr; gap:2rem; } .float-stack{ right:1rem; bottom:1rem; } }
   .foot-grid h4{ font-weight:700; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--text-mut); margin-bottom:.9rem; }
   .foot-grid p, .foot-grid a{ font-size:.9rem; color:var(--text); text-decoration:none; display:block; margin-bottom:.55rem; }
   .foot-grid a:hover{ color:var(--rose-deep); }
@@ -781,7 +783,10 @@
     var dots = dotsWrap.querySelectorAll('button');
     function goTesti(i){ slides[testiI].classList.remove('active'); dots[testiI].classList.remove('active'); testiI = i; slides[testiI].classList.add('active'); dots[testiI].classList.add('active'); }
     var testiTimer;
-    function startTesti(){ if (reduceMotion || TESTIMONIALS.length < 2) return; clearInterval(testiTimer); testiTimer = setInterval(function(){ goTesti((testiI+1) % TESTIMONIALS.length); }, 5000); }
+    // não depende de reduceMotion: mesmo com "Reduzir movimento" ativado no aparelho,
+    // a troca de depoimento deve continuar rodando (a transição já vira instantânea
+    // sozinha, pela regra global de prefers-reduced-motion lá no topo do CSS)
+    function startTesti(){ if (TESTIMONIALS.length < 2) return; clearInterval(testiTimer); testiTimer = setInterval(function(){ goTesti((testiI+1) % TESTIMONIALS.length); }, 5000); }
     var testiWrap = document.querySelector('.testi-wrap');
     // pausa ao passar o mouse só em dispositivos com hover real (desktop);
     // em touch, 'mouseenter' fica "preso" após o toque e travava o carrossel no mobile
